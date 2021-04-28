@@ -52,7 +52,7 @@ router.post("/shorten", adminOnly, (req, res) => {
 
     id = db.validID('links', id);
     db.get('links').push({ url, id }).write();
-    return res.redirect("/admin?msg=" + encodeURIComponent(`New URL: ${process.env.site}/u/${id}`));
+    return res.redirect("/admin?msg=" + encodeURIComponent(`New URL: ${process.env.SITE}/u/${id}`));
 });
 
 router.post("/paste", adminOnly, (req, res) => {
@@ -73,7 +73,7 @@ router.post("/paste", adminOnly, (req, res) => {
     }
 
     db.get('pastes').push(paste).write();
-    return res.redirect("/admin?msg=" + encodeURIComponent(`New paste: ${process.env.site}/p/${id}`));
+    return res.redirect("/admin?msg=" + encodeURIComponent(`New paste: ${process.env.SITE}/p/${id}`));
 });
 
 router.post("/upload", [adminOnly, upload.single('file')], (req, res) => {
@@ -85,7 +85,7 @@ router.post("/upload", [adminOnly, upload.single('file')], (req, res) => {
         id: req.file.filename,
         name: req.file.originalname
     }).write();
-    return res.redirect("/admin?msg=" + encodeURIComponent(`Uploaded file: ${process.env.site}/f/${req.file.filename}`));
+    return res.redirect("/admin?msg=" + encodeURIComponent(`Uploaded file: ${process.env.SITE}/f/${req.file.filename}`));
 });
 
 router.post("/download", adminOnly, (req, res) => {
