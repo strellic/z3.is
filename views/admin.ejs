@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>z3.is</title>
+    <meta name="description" content="z3.is">
+    <link rel="icon" type="image/png" href="/assets/img/logo.png">
+    <link rel="favorite icon" type="image/png" href="/assets/img/logo.png">
+    <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/styles.min.css">
+</head>
+
+<body>
+    <div class="container d-flex justify-content-center mt-5 pt-2">
+        <h1>z3.is Admin</h1>
+    </div>
+
+    <div class="d-flex justify-content-center parent" id="msg" style="display: none !important">
+        <div class="content-md">
+            <h4 id="msg-title"></h4>
+            <hr>
+            <h5 id="msg-body"></h5>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center parent">
+        <div class="content-md">
+            <h4>URL Shortener</h4>
+            <hr>
+            <form method="POST" action="/api/shorten">
+                <div class="form-group">
+                    <div class="input">
+                        <label for="shorten-url">URL</label>
+                        <input class="form-control" type="url" id="shorten-url" name="url" required>
+                    </div>
+                    <div class="input">
+                        <label for="shorten-id">Short ID [Optional]</label>
+                        <input class="form-control" type="text" id="shorten-id" name="id">
+                    </div>
+                    <button class="btn btn-primary btn-block" type="submit">Shorten</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center parent">
+        <div class="content-lg">
+            <h4>Pastebin</h4>
+            <hr>
+            <form method="POST" action="/api/paste">
+                <div class="form-group">
+                    <div class="input">
+                        <label for="paste-text">Text</label>
+                        <textarea name="text" id="paste-text" required></textarea>
+                    </div>
+                    <div class="input">
+                        <label for="paste-type">Type</label>
+                        <select id="paste-id" name="type" required>
+                            <option value="text/plain">Text / Other</option>
+                            <option value="text/html">HTML</option>
+                            <option value="text/javascript">JavaScript</option>
+                        </select>
+                    </div>
+                    <div class="input">
+                        <label for="shorten-title">Title [Optional]</label>
+                        <input class="form-control" type="text" id="shorten-title" name="title">
+                    </div>
+                    <div class="input">
+                        <label for="shorten-id">Short ID [Optional]</label>
+                        <input class="form-control" type="text" id="shorten-id" name="id">
+                    </div>
+                    <button class="btn btn-primary btn-block" type="submit">Paste</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center parent">
+        <div class="content-md">
+            <h4>File Upload</h4>
+            <hr>
+            <form method="POST" action="/api/upload" enctype="multipart/form-data">
+                <div class="form-group">
+                    <div class="input">
+                        <label for="upload-file">File</label>
+                        <input class="form-control-file mt-1 ml-3 mr-3" type="file" id="upload-file" name="file" required>
+                    </div>
+                    <div class="input">
+                        <label for="upload-id">Short ID [Optional]</label>
+                        <input class="form-control" type="text" id="upload-id" name="id">
+                    </div>
+                    <button class="btn btn-primary btn-block" type="submit">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container d-flex justify-content-center mt-5 pt-2"><a href="/api/logout">
+            <h5><i class="fas fa-arrow-left mr-2"></i>Log Out</h5>
+        </a></div>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
+
+    <script>
+        $ = document.querySelector.bind(document);
+        if(location.href.includes("msg")) {
+            let params = new URL(location.href).searchParams;
+            if(params.get("msg")) {
+                $("#msg").style.display = "block";
+                $("#msg-title").innerText = params.get("title") || "Message";
+                $("#msg-body").innerText = params.get("msg");
+                setTimeout(() => {
+                    history.pushState({}, document.title, "/admin");
+                }, 5000);
+            }
+        }
+
+        document.getElementById('paste-text').addEventListener('keydown', function(e) {
+            if (e.key == 'Tab') {
+                e.preventDefault();
+                let start = this.selectionStart;
+                let end = this.selectionEnd;
+
+                this.value = this.value.substring(0, start) + "\t" + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + 1;
+            }
+            $("#paste-text").style.height = "1px";
+            $("#paste-text").style.height = (25 + $("#paste-text").scrollHeight)+"px";
+        });
+    </script>
+</body>
+
+</html>
