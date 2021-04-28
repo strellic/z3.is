@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title><%= title ? `${title} (${id})` : id %></title>
-    <meta name="description" content="z3.is">
+    <title><%= paste.title ? `${paste.title} (${paste.id})` : paste.id %></title>
+    <meta name="description" content="<%= site %>">
     <link rel="icon" type="image/png" href="/assets/img/logo.png">
     <link rel="favorite icon" type="image/png" href="/assets/img/logo.png">
     <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
@@ -16,15 +16,24 @@
 
 <body>
     <div class="container d-flex justify-content-center mt-5 pt-2">
-        <h1><%= title ? `${title} (${id})` : id %></h1>
+        <h1><%= paste.title ? `${paste.title} (${paste.id})` : paste.id %></h1>
     </div>
 
     <div class="d-flex justify-content-center parent">
         <div class="content-lg paste">
-            <pre><code><%= text %></code></pre>
+            <%_ if (paste.confirm) { _%>
+            <h5>This paste is set to burn on read.</h5>
+            <h6>View paste?</h6>
             <br />
-            <a class="btn btn-primary" href="<%= id %>/d">Download</a>
-            <a class="btn btn-primary" href="<%= id %>/r">Raw</a>
+            <a class="btn btn-primary" href="?confirm=1">View</a>
+            <%_ } else {_%>
+            <pre><code><%= paste.text %></code></pre>
+            <%_ if (!paste.burn) { _%>
+            <br />
+            <a class="btn btn-primary" href="<%= paste.id %>/d">Download</a>
+            <a class="btn btn-primary" href="<%= paste.id %>/r">Raw</a>
+            <%_ } _%>
+            <%_ } _%>
         </div>
     </div>
 

@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
-    <title>z3.is</title>
-    <meta name="description" content="z3.is">
+    <title><%= site %></title>
+    <meta name="description" content="<%= site %>">
     <link rel="icon" type="image/png" href="/assets/img/logo.png">
     <link rel="favorite icon" type="image/png" href="/assets/img/logo.png">
     <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
@@ -15,7 +15,7 @@
 
 <body>
     <div class="container d-flex justify-content-center mt-5 pt-2">
-        <h1>z3.is Admin</h1>
+        <h1><%= site %> Admin</h1>
     </div>
 
     <div class="d-flex justify-content-center parent" id="msg" style="display: none !important">
@@ -58,19 +58,33 @@
                     </div>
                     <div class="input">
                         <label for="paste-type">Type</label>
-                        <select id="paste-id" name="type" required>
+                        <select id="paste-type" name="type" required>
                             <option value="text/plain">Text / Other</option>
                             <option value="text/html">HTML</option>
                             <option value="text/javascript">JavaScript</option>
                         </select>
                     </div>
                     <div class="input">
-                        <label for="shorten-title">Title [Optional]</label>
-                        <input class="form-control" type="text" id="shorten-title" name="title">
+                        <label for="paste-title">Title [Optional]</label>
+                        <input class="form-control" type="text" id="paste-title" name="title">
                     </div>
                     <div class="input">
-                        <label for="shorten-id">Short ID [Optional]</label>
-                        <input class="form-control" type="text" id="shorten-id" name="id">
+                        <label for="paste-id">Short ID [Optional]</label>
+                        <input class="form-control" type="text" id="paste-id" name="id">
+                    </div>
+                    <div class="input">
+                        <label for="paste-duration">Expiration</label>
+                        <select id="paste-duration" name="duration" required>
+                            <option value="never">Never</option>
+                            <option value="burn">Burn After Read</option>
+                            <option value="600">10 Minutes</option>
+                            <option value="3600">1 Hour</option>
+                            <option value="86400">1 Day</option>
+                            <option value="604800">1 Week</option>
+                            <option value="2629744">1 Month</option>
+                            <option value="15778463">6 Months</option>
+                            <option value="31556926">1 Year</option>
+                        </select>
                     </div>
                     <button class="btn btn-primary btn-block" type="submit">Paste</button>
                 </div>
@@ -98,25 +112,61 @@
         </div>
     </div>
 
-    <div class="container d-flex justify-content-center mt-5 pt-2"><a href="/api/logout">
+    <div class="d-flex justify-content-center parent">
+        <div class="content-md">
+            <h4>Remote File Download</h4>
+            <hr>
+            <form method="POST" action="/api/download">
+                <div class="form-group">
+                    <div class="input">
+                        <label for="download-url">URL</label>
+                        <input class="form-control" type="url" id="download-url" name="url" required>
+                    </div>
+                    <div class="input">
+                        <label for="upload-id">Short ID [Optional]</label>
+                        <input class="form-control" type="text" id="upload-id" name="id">
+                    </div>
+                    <button class="btn btn-primary btn-block" type="submit">Download</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="container d-flex justify-content-center mt-5 pt-2 pb-5">
+        <a href="/api/logout">
             <h5><i class="fas fa-arrow-left mr-2"></i>Log Out</h5>
-        </a></div>
+        </a>
+    </div>
     <script src="/assets/js/jquery.min.js"></script>
     <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
 
     <script>
         $ = document.querySelector.bind(document);
-        if(location.href.includes("msg")) {
-            let params = new URL(location.href).searchParams;
-            if(params.get("msg")) {
-                $("#msg").style.display = "block";
-                $("#msg-title").innerText = params.get("title") || "Message";
-                $("#msg-body").innerText = params.get("msg");
-                setTimeout(() => {
-                    history.pushState({}, document.title, "/admin");
-                }, 5000);
-            }
+        let params = new URL(location.href).searchParams;
+        if(params.get("msg")) {
+            $("#msg").style.display = "block";
+            $("#msg-title").innerText = params.get("title") || "Message";
+            $("#msg-body").innerText = params.get("msg");
         }
+        if(params.get("ws")) {
+            $("#msg").style.display = "block";
+            let ws = new WebSocket(location.origin.replace("http:", "ws:").replace("https://", "wss:") + "/ws");
+            ws.onopen = () => {
+                ws.onmessage = (m) => {
+                    let recv = JSON.parse(m.data);
+                    if(recv.msg) {
+                        $("#msg-body").innerText = recv.msg;
+                    }
+                    if(recv.title) {
+                        $("#msg-title").innerText = recv.title;
+                    }
+                };
+            };
+        }
+
+        setTimeout(() => {
+            history.pushState({}, document.title, "/admin");
+        }, 5000);
 
         document.getElementById('paste-text').addEventListener('keydown', function(e) {
             if (e.key == 'Tab') {
