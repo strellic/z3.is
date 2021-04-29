@@ -18,22 +18,22 @@ A simple NodeJS app to host my site [z3.is](https://z3.is).
 * Download files from remote URLs
 * Download progress percentage with WebSockets
 * DB management page to view / delete everything
+* Scopes system to create new users with certain scopes
 
 ## Setup
 1. Clone the repository, then run `npm install`
 2. Copy `.env.example` to `.env`, and edit it with the correct details
-3. Run the app once using `node index.js`
-4. Generate a bcrypt password with a website like this like [this](https://gchq.github.io/CyberChef/#recipe=Bcrypt(12)&input=eW91cl9wYXNzd29yZA) to generate a bcrypt password for the admin dashboard
-5. Add an entry to `db.json` for your username. Example:
-```json
-    "users": [
-        {
-            "user": "ADMIN_USER",
-            "pass": "BCRYPT_PASS"
-        }
-    ],
-```
-6. Run the app again with `node index.js`, and you should now be able to navigate to `/admin/` and login
+3. Run the app using `node index.js`
+4. Navigate to `/admin` to create an account with the `superadmin` scope
+
+## Scopes
+Scopes are how certain accounts are given access to specific sections of the website.
+* superadmin - access to everything
+* users - access to create / delete users (this can create new superadmin accounts)
+* shorten - access to the URL shortener
+* paste - access to the pastebin system
+* upload - access to upload files (limited by MAXFILE size in .env)
+* download - access to download remote files (not limited by MAXFILE)
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

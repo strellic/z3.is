@@ -10,6 +10,7 @@ const session = require('express-session');
 const MemoryStore = require('memorystore')(session);
 
 const db = require("./src/db.js");
+const scopes = require("./src/scopes.js");
 const websocket = require("./src/websocket.js");
 
 const store = new MemoryStore({
@@ -28,6 +29,7 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 
 app.locals.site = SITE;
+app.locals.hasScope = scopes.hasScope;
 
 app.use("/admin", require("./routes/admin.js"));
 app.use("/api", require("./routes/api.js"));

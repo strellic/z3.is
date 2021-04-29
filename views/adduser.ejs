@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title><%= site %></title>
+    <meta name="description" content="<%= site %>">
+    <link rel="icon" type="image/png" href="/assets/img/logo.png">
+    <link rel="favorite icon" type="image/png" href="/assets/img/logo.png">
+    <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/styles.min.css">
+</head>
+
+<body>
+    <div class="container d-flex justify-content-center mt-5 pt-2">
+        <h1><%= site %> Admin</h1>
+    </div>
+    <div class="d-flex justify-content-center parent">
+        <div class="content-md">
+            <h4>Add User</h4>
+            <hr>
+            <form method="POST" action="/api/adduser" id="adduser">
+                <div class="form-group">
+                    <div class="input">
+                        <label for="user">Username</label>
+                        <input class="form-control" type="text" id="user" name="user">
+                    </div>
+                    <div class="input">
+                        <label for="pass">Password</label>
+                        <input class="form-control" type="password" name="pass">
+                    </div>
+                    <%_ if(!first) { _%>
+                    <div class="scopes">
+                        <label for="scopes">Scopes</label>
+                        <br />
+                        <%_ scopes.forEach(scope => { _%>
+                        <input type="checkbox" name="<%= scope %>" id="scope_<%= scope %>" value="<%= scope %>">
+                        <label for="scope_<%= scope %>"><%= scope %></label>
+                        <br />
+                        <%_ }) _%>
+                    </div>
+                    <%_ } _%>
+                    <input class="form-control" type="hidden" name="scopes" id="scopes">
+                    <button class="btn btn-primary btn-block" type="submit">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="container d-flex justify-content-center mt-5 pt-2 bottom"><a href="/admin/">
+            <h5><i class="fas fa-arrow-left mr-2"></i>Back</h5>
+        </a></div>
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script>
+        $("#adduser").one("submit", (e) => {
+            e.preventDefault();
+            let scopes = [];
+            <%_ if(!first) { _%>
+            <%_ scopes.forEach(scope => { _%>
+            if($("#scope_<%= scope %>").prop("checked")) {
+                scopes.push("<%= scope %>");
+            }
+            <%_ }); _%>
+            <%_ } else { _%>
+            scopes = ["superadmin"];
+            <%_ } _%>
+            $("#scopes").val(JSON.stringify(scopes));
+            $("#adduser").submit();
+        });
+    </script>
+</body>
+
+</html>

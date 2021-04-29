@@ -23,10 +23,12 @@
             <h4 id="msg-title"></h4>
             <hr>
             <h5 id="msg-body"></h5>
+            <%_ if (hasScope(user, 'download')) { _%>
             <button id="abort" class="btn btn-danger mt-3" style="display: none !important">Abort Download</button>
+            <%_ } _%>
         </div>
     </div>
-
+    <%_ if (hasScope(user, 'shorten')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-md">
             <h4>URL Shortener</h4>
@@ -46,7 +48,8 @@
             </form>
         </div>
     </div>
-
+    <%_ } _%>
+    <%_ if (hasScope(user, 'paste')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-lg">
             <h4>Pastebin</h4>
@@ -66,10 +69,6 @@
                         </select>
                     </div>
                     <div class="input">
-                        <label for="paste-title">Title [Optional]</label>
-                        <input class="form-control" type="text" id="paste-title" name="title">
-                    </div>
-                    <div class="input">
                         <label for="paste-duration">Expiration</label>
                         <select id="paste-duration" name="duration" required>
                             <option value="never">Never</option>
@@ -84,6 +83,10 @@
                         </select>
                     </div>
                     <div class="input">
+                        <label for="paste-title">Title [Optional]</label>
+                        <input class="form-control" type="text" id="paste-title" name="title">
+                    </div>
+                    <div class="input">
                         <label for="paste-id">Short ID [Optional]</label>
                         <input class="form-control" type="text" id="paste-id" name="id">
                     </div>
@@ -92,7 +95,8 @@
             </form>
         </div>
     </div>
-
+    <%_ } _%>
+    <%_ if (hasScope(user, 'upload')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-md">
             <h4>File Upload</h4>
@@ -125,7 +129,8 @@
             </form>
         </div>
     </div>
-
+    <%_ } _%>
+    <%_ if (hasScope(user, 'download')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-md">
             <h4>Remote File Download</h4>
@@ -158,7 +163,7 @@
             </form>
         </div>
     </div>
-
+    <%_ } _%>
     <div class="container d-flex justify-content-center mt-5 pt-2 bottom">
         <a href="/admin/db">
             <h5><i class="fas fa-database mr-2"></i>Manage DB</h5>
@@ -171,7 +176,6 @@
     </div>
     <script src="/assets/js/jquery.min.js"></script>
     <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
-
     <script>
         $ = document.querySelector.bind(document);
         let params = new URL(location.href).searchParams;
@@ -181,6 +185,8 @@
             $("#msg-title").innerText = params.get("title") || "Message";
             $("#msg-body").innerText = params.get("msg");
         }
+
+        <%_ if (hasScope(user, 'download')) { _%>
         if(params.get("ws")) {
             $("#msg").style.display = "block";
             ws = new WebSocket(location.origin.replace("http:", "ws:").replace("https://", "wss:") + "/ws");
@@ -200,15 +206,16 @@
                 };
             };
         }
-
         $("#abort").addEventListener('click', (e) => {
             ws.send("abort");
         });
+        <%_ } _%>
 
         setTimeout(() => {
             history.pushState({}, document.title, "/admin");
         }, 5000);
 
+        <%_ if (hasScope(user, 'paste')) { _%>
         $('#paste-text').addEventListener('keydown', function(e) {
             if (e.key == 'Tab') {
                 e.preventDefault();
@@ -221,7 +228,7 @@
             $("#paste-text").style.height = "1px";
             $("#paste-text").style.height = (25 + $("#paste-text").scrollHeight)+"px";
         });
+        <%_ } _%>
     </script>
 </body>
-
 </html>

@@ -18,15 +18,18 @@
     <div class="container d-flex justify-content-center mt-5 pt-2">
         <h1><%= site %> DB Management</h1>
     </div>
-
+    <%_ if (hasScope(user, 'users')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-lg">
             <h4>Users</h4>
             <hr>
             <table id="users"></table>
+            <hr>
+            <h5><a href="/admin/adduser">Add New User</a></h5>
         </div>
     </div>
-
+    <%_ } _%>
+    <%_ if (hasScope(user, 'shorten')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-lg">
             <h4>Links</h4>
@@ -34,7 +37,8 @@
             <table id="links"></table>
         </div>
     </div>
-
+    <%_ } _%>
+    <%_ if (hasScope(user, 'paste')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-lg">
             <h4>Pastes</h4>
@@ -42,7 +46,8 @@
             <table id="pastes"></table>
         </div>
     </div>
-
+    <%_ } _%>
+    <%_ if (hasScope(user, 'upload') || hasScope(user, 'download')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-lg">
             <h4>Files</h4>
@@ -50,6 +55,7 @@
             <table id="files"></table>
         </div>
     </div>
+    <%_ } _%>
 
     <div class="d-none">
         <form method="POST" action="/api/delete" id="delete">
@@ -57,15 +63,14 @@
             <input type="text" name="json" id="delete-json" />
         </form>
     </div>
-
-    <div class="container d-flex justify-content-center mt-5 pt-2 pb-5 bottom"><a href="/admin">
+    <div class="container d-flex justify-content-center mt-5 pt-2 pb-5 bottom">
+        <a href="/admin">
             <h5><i class="fas fa-arrow-left mr-2"></i>Back</h5>
-        </a></div>
-
+        </a>
+    </div>
     <script src="/assets/js/jquery.min.js"></script>
     <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
     <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
-
     <script>
         let db = "<%- encodeURIComponent(JSON.stringify(db)) %>";
         db = JSON.parse(decodeURIComponent(db));
@@ -97,18 +102,24 @@
             }
         };
 
+        <%_ if (hasScope(user, 'users')) { _%>
         $('#users').bootstrapTable({
             pagination: true,
             search: true,
             columns: [{
                 field: 'user',
                 title: 'Username'
-            }, 
+            }, {
+                field: 'scopes',
+                title: 'Scopes',
+                formatter: (value, row, index) => value.join(", ")
+            },
                 deleteButton('users')
             ],
             data: db.users
         });
-
+        <%_ } _%>
+        <%_ if (hasScope(user, 'shorten')) { _%>
         $('#links').bootstrapTable({
             pagination: true,
             search: true,
@@ -120,11 +131,12 @@
                 title: 'ID',
                 formatter: idToLink("u")
             },
-                deleteButton('links')
+                deleteButton('shorten')
             ],
-            data: db.links
+            data: db.shorten
         });
-
+        <%_ } _%>
+        <%_ if (hasScope(user, 'paste')) { _%>
         $('#pastes').bootstrapTable({
             pagination: true,
             search: true,
@@ -146,13 +158,14 @@
                 title: 'ID',
                 formatter: idToLink("p")
             }, 
-                deleteButton('pastes')
+                deleteButton('paste')
             ],
             detailFormatter: (index, row, element) => element.html("<pre><code>" + $("<div>").text(row.text).html() + "</code></pre>"),
             detailView: true,
-            data: db.pastes
+            data: db.paste
         });
-
+        <%_ } _%>
+        <%_ if (hasScope(user, 'upload') || hasScope(user, 'download')) { _%>
         $('#files').bootstrapTable({
             pagination: true,
             search: true,
@@ -175,7 +188,7 @@
             ],
             data: db.files
         });
+        <%_ } _%>
     </script>
-
 </body>
 </html>
