@@ -24,12 +24,10 @@
             <%_ if (paste.confirm) { _%>
             <h5>This paste is set to burn on read.</h5>
             <h6>View paste?</h6>
-            <br />
             <a class="btn btn-primary" href="?confirm=1">View</a>
             <%_ } else {_%>
             <pre><code><%= paste.text %></code></pre>
             <%_ if (!paste.burn) { _%>
-            <br />
             <a class="btn btn-primary" href="<%= paste.id %>/d">Download</a>
             <a class="btn btn-primary" href="<%= paste.id %>/r">Raw</a>
             <%_ } _%>

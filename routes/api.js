@@ -14,7 +14,7 @@ const upload = multer({
             cb(null, './uploads/');
         },
         filename: function (req, file, cb) {
-            let id = db.randomIDForDB('files', 6);
+            let id = db.randomIDForDB('files', 4);
             cb(null, id);
         }
     }),
@@ -209,7 +209,7 @@ router.post("/adduser", async (req, res) => {
 
     userScopes = userScopes.filter(s => scopes.scopes.includes(s));
     if(!scopes.hasScope(req.session.user, "superadmin")) {
-        userScopes = userScopes.filter(s => s !== "superadmin");
+        userScopes = userScopes.filter(s => scopes.hasScope(req.session.user, s));
     }
 
     if(users.length === 0 || userScopes.includes("superadmin")) {

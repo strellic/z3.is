@@ -60,8 +60,9 @@ router.get("/adduser", (req, res) => {
     }
 
     let allScopes = scopes.scopes;
-    if(!scopes.hasScope(user, 'superadmin'))
-        allScopes = allScopes.filter(s => s !== "superadmin")
+    if(!scopes.hasScope(user, 'superadmin')) {
+        allScopes = allScopes.filter(s => scopes.hasScope(user, s))
+    }
 
     return res.render("adduser", { 
         user,

@@ -24,7 +24,7 @@ db.randomIDForDB = (name, length, i = 0) => {
     return id;
 };
 
-db.validID = (name, id, length = 6) => {
+db.validID = (name, id, length = 4) => {
     if(!id || db.get(name).find({ id }).value()) {
         return db.randomIDForDB(name, length);
     }
