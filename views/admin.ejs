@@ -23,6 +23,7 @@
             <h4 id="msg-title"></h4>
             <hr>
             <h5 id="msg-body"></h5>
+            <button id="abort" class="btn btn-danger mt-3" style="display: none !important">Abort Download</button>
         </div>
     </div>
 
@@ -69,14 +70,10 @@
                         <input class="form-control" type="text" id="paste-title" name="title">
                     </div>
                     <div class="input">
-                        <label for="paste-id">Short ID [Optional]</label>
-                        <input class="form-control" type="text" id="paste-id" name="id">
-                    </div>
-                    <div class="input">
                         <label for="paste-duration">Expiration</label>
                         <select id="paste-duration" name="duration" required>
                             <option value="never">Never</option>
-                            <option value="burn">Burn After Read</option>
+                            <option value="burn">Burn on Read</option>
                             <option value="600">10 Minutes</option>
                             <option value="3600">1 Hour</option>
                             <option value="86400">1 Day</option>
@@ -85,6 +82,10 @@
                             <option value="15778463">6 Months</option>
                             <option value="31556926">1 Year</option>
                         </select>
+                    </div>
+                    <div class="input">
+                        <label for="paste-id">Short ID [Optional]</label>
+                        <input class="form-control" type="text" id="paste-id" name="id">
                     </div>
                     <button class="btn btn-primary btn-block" type="submit">Paste</button>
                 </div>
@@ -101,6 +102,19 @@
                     <div class="input">
                         <label for="upload-file">File</label>
                         <input class="form-control-file mt-1 ml-3 mr-3" type="file" id="upload-file" name="file" required>
+                    </div>
+                    <div class="input">
+                        <label for="upload-duration">Expiration</label>
+                        <select id="upload-duration" name="duration" required>
+                            <option value="never">Never</option>
+                            <option value="600">10 Minutes</option>
+                            <option value="3600">1 Hour</option>
+                            <option value="86400">1 Day</option>
+                            <option value="604800">1 Week</option>
+                            <option value="2629744">1 Month</option>
+                            <option value="15778463">6 Months</option>
+                            <option value="31556926">1 Year</option>
+                        </select>
                     </div>
                     <div class="input">
                         <label for="upload-id">Short ID [Optional]</label>
@@ -123,6 +137,19 @@
                         <input class="form-control" type="url" id="download-url" name="url" required>
                     </div>
                     <div class="input">
+                        <label for="download-duration">Expiration</label>
+                        <select id="download-duration" name="duration" required>
+                            <option value="never">Never</option>
+                            <option value="600">10 Minutes</option>
+                            <option value="3600">1 Hour</option>
+                            <option value="86400">1 Day</option>
+                            <option value="604800">1 Week</option>
+                            <option value="2629744">1 Month</option>
+                            <option value="15778463">6 Months</option>
+                            <option value="31556926">1 Year</option>
+                        </select>
+                    </div>
+                    <div class="input">
                         <label for="upload-id">Short ID [Optional]</label>
                         <input class="form-control" type="text" id="upload-id" name="id">
                     </div>
@@ -132,7 +159,12 @@
         </div>
     </div>
 
-    <div class="container d-flex justify-content-center mt-5 pt-2 pb-5">
+    <div class="container d-flex justify-content-center mt-5 pt-2 bottom">
+        <a href="/admin/db">
+            <h5><i class="fas fa-database mr-2"></i>Manage DB</h5>
+        </a>
+    </div>
+    <div class="container d-flex justify-content-center pb-5 bottom">
         <a href="/api/logout">
             <h5><i class="fas fa-arrow-left mr-2"></i>Log Out</h5>
         </a>
@@ -143,6 +175,7 @@
     <script>
         $ = document.querySelector.bind(document);
         let params = new URL(location.href).searchParams;
+        let ws;
         if(params.get("msg")) {
             $("#msg").style.display = "block";
             $("#msg-title").innerText = params.get("title") || "Message";
@@ -150,8 +183,9 @@
         }
         if(params.get("ws")) {
             $("#msg").style.display = "block";
-            let ws = new WebSocket(location.origin.replace("http:", "ws:").replace("https://", "wss:") + "/ws");
+            ws = new WebSocket(location.origin.replace("http:", "ws:").replace("https://", "wss:") + "/ws");
             ws.onopen = () => {
+                $("#abort").style.display = "block";
                 ws.onmessage = (m) => {
                     let recv = JSON.parse(m.data);
                     if(recv.msg) {
@@ -160,15 +194,22 @@
                     if(recv.title) {
                         $("#msg-title").innerText = recv.title;
                     }
+                    if(recv.done) {
+                        $("#abort").style.display = "none";
+                    }
                 };
             };
         }
+
+        $("#abort").addEventListener('click', (e) => {
+            ws.send("abort");
+        });
 
         setTimeout(() => {
             history.pushState({}, document.title, "/admin");
         }, 5000);
 
-        document.getElementById('paste-text').addEventListener('keydown', function(e) {
+        $('#paste-text').addEventListener('keydown', function(e) {
             if (e.key == 'Tab') {
                 e.preventDefault();
                 let start = this.selectionStart;

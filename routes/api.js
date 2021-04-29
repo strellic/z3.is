@@ -1,4 +1,6 @@
 const express = require("express");
+const fs = require("fs");
+
 const router = express.Router();
 
 require("dotenv").config();
@@ -80,16 +82,30 @@ router.post("/upload", [adminOnly, upload.single('file')], (req, res) => {
     if(!req.file) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`No file uploaded`));
     }
-    db.get('files').push({ 
+
+    let id = req.file.filename;
+    if(req.body.id && !db.get('files').find({ id: req.body.id }).value()) {
+        id = req.body.id;
+        fs.rename("./uploads/" + req.file.filename, "./uploads/" + req.body.id, () => {});
+    }
+
+    let file = { 
         mimetype: req.file.mimetype,
-        id: req.file.filename,
+        id,
         name: req.file.originalname
-    }).write();
-    return res.redirect("/admin?msg=" + encodeURIComponent(`Uploaded file: ${process.env.SITE}/f/${req.file.filename}`));
+    };
+
+    if(req.body.duration && !isNaN(parseInt(req.body.duration))) {
+        let duration = parseInt(req.body.duration);
+        file.expiration = +new Date() + duration*1000;
+    }
+
+    db.get('files').push(file).write();
+    return res.redirect("/admin?msg=" + encodeURIComponent(`Uploaded file: ${process.env.SITE}/f/${id}`));
 });
 
 router.post("/download", adminOnly, (req, res) => {
-    let { url, id } = req.body;
+    let { url, id, duration } = req.body;
     if(!url) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing URL`));
     }
@@ -105,13 +121,42 @@ router.post("/download", adminOnly, (req, res) => {
     if(!['http:', 'https:', 'ftp:'].includes(urlinfo.protocol)) {
         return res.redirect("/admin?msg=" + encodeURIComponent(`Invalid URL protocol`));
     }
-    req.session.dl = { url, id };
+
+    let data = { url, id };
+    if(duration && !isNaN(parseInt(duration))) {
+        data.duration = parseInt(duration);
+    }
+
+    req.session.dl = data;
     return res.redirect("/admin?ws=1");
+});
+
+router.post("/delete", adminOnly, (req, res) => {
+    let { table, json } = req.body;
+    if(!table || !json) {
+        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing data to delete`));
+    }
+
+    try {
+        json = JSON.parse(json);
+    }
+    catch(err) {
+        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Invalid item to delete`));
+    }
+
+    db.get(table).remove(json).write();
+    return res.redirect("/admin/db");
 });
 
 const expirationCheck = () => {
     let time = +new Date();
     db.get('pastes').remove(p => p.expiration && time > p.expiration).write();
+    
+    let files = db.get('files').filter(f => f.expiration && time > f.expiration).value();
+    for(let file of files) {
+        fs.rmSync("./uploads/" + file.id);
+    }
+    db.get('files').remove(f => f.expiration && time > f.expiration).write();
 };
 expirationCheck();
 setInterval(expirationCheck, 60000);

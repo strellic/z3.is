@@ -7,6 +7,8 @@ A simple NodeJS app to host my site [z3.is](https://z3.is).
 
 ![](https://i.gyazo.com/8cbb4ee2b55b23a1af82216be758e9bd.png)
 
+![](https://i.gyazo.com/50aec220b8595c322e27ef206a413c1c.png)
+
 ## Features
 * Pastebin
 * Pastes w/ Expiration & Burn on Read
@@ -15,6 +17,7 @@ A simple NodeJS app to host my site [z3.is](https://z3.is).
 * File upload storage
 * Download files from remote URLs
 * Download progress percentage with WebSockets
+* DB management page to view / delete everything
 
 ## Setup
 1. Clone the repository, then run `npm install`

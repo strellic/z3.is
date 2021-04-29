@@ -1,7 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 
-const dl = async (url, id, statusCb, onDone) => {
+const dl = (url, id, statusCb, onDone) => {
     let request;
     let file = fs.createWriteStream("./uploads/" + id);
 
@@ -21,11 +21,15 @@ const dl = async (url, id, statusCb, onDone) => {
         res.on('data', function(chunk) {
             file.write(chunk);
             downloaded += chunk.length;
-            statusCb("Downloading " + (100.0 * downloaded / len).toFixed(2) + "%");
+
+            let progress = (100.0 * downloaded / len).toFixed(2);
+            let size = (len / 1e+6).toFixed(2), curr = (downloaded / 1e+6).toFixed(2);
+
+            statusCb(`${curr}MB / ${size}MB - ${progress}%`);
             clearTimeout(timer);
             timer = setTimeout(() => {
-                request.abort();
                 statusCb("The download timed out.");
+                request.abort();
             }, 10000);
         }).on('end', ()  => {
             clearTimeout(timer);
@@ -37,10 +41,18 @@ const dl = async (url, id, statusCb, onDone) => {
                 name: res.req.path.split("/")[res.req.path.split("/").length-1]
             });
         }).on('error', (err) => {
-            clearTimeout(timer);                
             statusCb(err.message);
+            clearTimeout(timer);                
         });           
     });
+
+    let stopper = () => {
+        statusCb('The download was aborted.');
+        request.abort();
+        clearTimeout(timer);
+    };
+
+    return stopper;
 };
 
 module.exports = { dl };

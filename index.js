@@ -29,17 +29,12 @@ app.set('view engine', 'ejs');
 
 app.locals.site = SITE;
 
+app.use("/admin", require("./routes/admin.js"));
 app.use("/api", require("./routes/api.js"));
+
 app.use("/p", require("./routes/p.js"));
 app.use("/u", require("./routes/u.js"));
 app.use("/f", require("./routes/f.js"));
-
-app.get("/admin", (req, res) => {
-    if(req.session.user) {
-        return res.render("admin");
-    }
-    return res.render("login");
-});
 
 app.get("/", (req, res) => {
     res.render("index");

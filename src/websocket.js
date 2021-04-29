@@ -25,14 +25,27 @@ const init = (server, s) => {
                     return ws.close();
                 }
 
-                let { url, id } = session.dl; 
+                let { url, id, duration } = session.dl; 
                 ws.send(JSON.stringify({ title: `URL: ${process.env.SITE}/f/${id}` }));
-                download.dl(url, id, (msg) => {
+                let stopper = download.dl(url, id, (msg) => {
                     ws.send(JSON.stringify({ msg }));
                 }, (file) => {
+                    ws.send(JSON.stringify({ done: true }));
+
+                    if(duration && typeof duration === "number") {
+                        file.expiration = +new Date() + duration*1000;
+                    }
+
                     db.get('files').push(file).write();
+                    ws.close();
                 });
                 store.set(sid, {...session, dl: null});
+
+                ws.on('message', () => {
+                    ws.send(JSON.stringify({ done: true }));
+                    stopper();
+                    ws.close();
+                });
             });
         }
         else {

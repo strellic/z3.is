@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title><%= site %></title>
+    <meta name="description" content="<%= site %>">
+    <link rel="icon" type="image/png" href="/assets/img/logo.png">
+    <link rel="favorite icon" type="image/png" href="/assets/img/logo.png">
+    <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/assets/fonts/fontawesome-all.min.css">
+    <link rel="stylesheet" href="/assets/css/styles.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
+</head>
+
+<body>
+    <div class="container d-flex justify-content-center mt-5 pt-2">
+        <h1><%= site %> DB Management</h1>
+    </div>
+
+    <div class="d-flex justify-content-center parent">
+        <div class="content-lg">
+            <h4>Users</h4>
+            <hr>
+            <table id="users"></table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center parent">
+        <div class="content-lg">
+            <h4>Links</h4>
+            <hr>
+            <table id="links"></table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center parent">
+        <div class="content-lg">
+            <h4>Pastes</h4>
+            <hr>
+            <table id="pastes"></table>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-center parent">
+        <div class="content-lg">
+            <h4>Files</h4>
+            <hr>
+            <table id="files"></table>
+        </div>
+    </div>
+
+    <div class="d-none">
+        <form method="POST" action="/api/delete" id="delete">
+            <input type="text" name="table" id="delete-table" />
+            <input type="text" name="json" id="delete-json" />
+        </form>
+    </div>
+
+    <div class="container d-flex justify-content-center mt-5 pt-2 pb-5 bottom"><a href="/admin">
+            <h5><i class="fas fa-arrow-left mr-2"></i>Back</h5>
+        </a></div>
+
+    <script src="/assets/js/jquery.min.js"></script>
+    <script src="/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+
+    <script>
+        let db = "<%- encodeURIComponent(JSON.stringify(db)) %>";
+        db = JSON.parse(decodeURIComponent(db));
+
+        const idToLink = (prefix) => {
+            return (value, row, index) => `
+                <a href="/${prefix}/${value.replace(/"/g, '')}" target="_blank">${value}</a>
+            `;
+        };
+
+        const deleteButton = (table) => {
+            return {
+                field: 'delete',
+                title: 'Delete',
+                formatter: (value, row, index) => `
+                    <button data-table="${table}" data-index="${index}" class="btn btn-danger" onclick="deleteItem(this)">Delete</button>
+                `
+            }
+        };
+
+        const deleteItem = (ele) => {
+            let table = ele.getAttribute("data-table");
+            let index = parseInt(ele.getAttribute("data-index"));
+
+            if(db[table][index]) {
+                $("#delete-table").val(table);
+                $("#delete-json").val(JSON.stringify(db[table][index]));
+                $("#delete").submit()
+            }
+        };
+
+        $('#users').bootstrapTable({
+            pagination: true,
+            search: true,
+            columns: [{
+                field: 'user',
+                title: 'Username'
+            }, 
+                deleteButton('users')
+            ],
+            data: db.users
+        });
+
+        $('#links').bootstrapTable({
+            pagination: true,
+            search: true,
+            columns: [{
+                field: 'url',
+                title: 'URL'
+            }, {
+                field: 'id',
+                title: 'ID',
+                formatter: idToLink("u")
+            },
+                deleteButton('links')
+            ],
+            data: db.links
+        });
+
+        $('#pastes').bootstrapTable({
+            pagination: true,
+            search: true,
+            columns: [{
+                field: 'title',
+                title: 'Title'
+            }, {
+                field: 'type',
+                title: 'Type'
+            }, {
+                field: 'expiration',
+                title: 'Expiration',
+                formatter: (value, row, index) => value ? new Date(value).toLocaleString() : ""
+            }, {
+                field: 'burn',
+                title: 'Burn'
+            }, {
+                field: 'id',
+                title: 'ID',
+                formatter: idToLink("p")
+            }, 
+                deleteButton('pastes')
+            ],
+            detailFormatter: (index, row, element) => element.html("<pre><code>" + $("<div>").text(row.text).html() + "</code></pre>"),
+            detailView: true,
+            data: db.pastes
+        });
+
+        $('#files').bootstrapTable({
+            pagination: true,
+            search: true,
+            columns: [{
+                field: 'name',
+                title: 'Name'
+            }, {
+                field: 'mimetype',
+                title: 'Type'
+            }, {
+                field: 'expiration',
+                title: 'Expiration',
+                formatter: (value, row, index) => value ? new Date(value).toLocaleString() : ""
+            }, {
+                field: 'id',
+                title: 'ID',
+                formatter: idToLink("f")
+            },
+                deleteButton('files')
+            ],
+            data: db.files
+        });
+    </script>
+
+</body>
+</html>
