@@ -28,6 +28,15 @@
             <%_ } _%>
         </div>
     </div>
+    <%_ if (hasScope(user, 'users')) { _%>
+    <div class="d-flex justify-content-center parent">
+        <div class="content-md">
+            <h4>Users</h4>
+            <hr>
+            <h5><a href="/admin/adduser">Add New User</a></h5>
+        </div>
+    </div>
+    <%_ } _%>
     <%_ if (hasScope(user, 'shorten')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-md">

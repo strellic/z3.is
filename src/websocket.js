@@ -35,6 +35,7 @@ const init = (server, s) => {
                     if(duration && typeof duration === "number") {
                         file.expiration = +new Date() + duration*1000;
                     }
+                    file.user = session.user;
 
                     db.get('files').push(file).write();
                     ws.close();

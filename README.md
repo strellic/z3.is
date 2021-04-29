@@ -10,8 +10,7 @@ A simple NodeJS app to host my site [z3.is](https://z3.is).
 ![](https://i.gyazo.com/50aec220b8595c322e27ef206a413c1c.png)
 
 ## Features
-* Pastebin
-* Pastes w/ Expiration & Burn on Read
+* Pastebin w/ Expiration & Burn on Read
 * Syntax Highlighting
 * URL Shortener
 * File upload storage
@@ -28,12 +27,14 @@ A simple NodeJS app to host my site [z3.is](https://z3.is).
 
 ## Scopes
 Scopes are how certain accounts are given access to specific sections of the website.
-* superadmin - access to everything
-* users - access to create / delete users (this can create new superadmin accounts)
+* superadmin - access to everything (can make new superadmin accounts)
+* users - access to create / delete users (can't create / delete superadmin accounts)
 * shorten - access to the URL shortener
 * paste - access to the pastebin system
 * upload - access to upload files (limited by MAXFILE size in .env)
 * download - access to download remote files (not limited by MAXFILE)
+
+Superadmins can view the creations of all other users, so give people this scope with caution. People without the `superadmin` scope will only be able to see their own creations. However, people with the `users` scope can see and delete non-superadmin accounts.
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

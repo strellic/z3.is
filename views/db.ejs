@@ -24,8 +24,6 @@
             <h4>Users</h4>
             <hr>
             <table id="users"></table>
-            <hr>
-            <h5><a href="/admin/adduser">Add New User</a></h5>
         </div>
     </div>
     <%_ } _%>
@@ -86,7 +84,7 @@
                 field: 'delete',
                 title: 'Delete',
                 formatter: (value, row, index) => `
-                    <button data-table="${table}" data-index="${index}" class="btn btn-danger" onclick="deleteItem(this)">Delete</button>
+                    <button data-table="${table}" data-index="${index}" class="btn btn-danger${row.disabled ? " disabled" : ""}" onclick="deleteItem(this)">Delete</button>
                 `
             }
         };
@@ -98,7 +96,7 @@
             if(db[table][index]) {
                 $("#delete-table").val(table);
                 $("#delete-json").val(JSON.stringify(db[table][index]));
-                $("#delete").submit()
+                $("#delete").submit();
             }
         };
 
@@ -124,6 +122,9 @@
             pagination: true,
             search: true,
             columns: [{
+                field: 'user',
+                title: 'Username'
+            }, {
                 field: 'url',
                 title: 'URL'
             }, {
@@ -141,6 +142,9 @@
             pagination: true,
             search: true,
             columns: [{
+                field: 'user',
+                title: 'Username'
+            }, {
                 field: 'title',
                 title: 'Title'
             }, {
@@ -170,6 +174,9 @@
             pagination: true,
             search: true,
             columns: [{
+                field: 'user',
+                title: 'Username'
+            }, {
                 field: 'name',
                 title: 'Name'
             }, {
