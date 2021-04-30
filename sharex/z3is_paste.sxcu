@@ -1,0 +1,13 @@
+{
+    "Version": "12.4.1",
+    "Name": "z3.is (Paste)",
+    "RequestMethod": "POST",
+    "RequestURL": "https://z3.is/api/paste",
+    "Body": "FormURLEncoded",
+    "Headers": {
+        "Authorization": "Bearer API_TOKEN"
+    },
+    "Arguments": {
+        "text": "$input$"
+    }
+}

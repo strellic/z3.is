@@ -11,18 +11,23 @@ const db = require("./db.js");
 const scopes = ["superadmin", "users", "shorten", "paste", "upload", "download"];
 
 const hasScope = (user, role) => {
-    let dbUser = db.get('users').find({ user }).value();
-    if(!dbUser || !dbUser.scopes) 
+    if(typeof user !== "object") {
+        // hasScope can take user object or username string
+        user = db.get('users').find({ user }).value();
+    }
+    if(!user || !user.scopes) 
         return false;
-    return dbUser.scopes.includes("superadmin") || dbUser.scopes.includes(role);
+    return user.scopes.includes("superadmin") || user.scopes.includes(role);
 };
 
 const hasScopeMiddleware = (scope) => {
     return (req, res, next) => {
-        if(!req.session.user) {
-            return res.redirect("/");
+        let user = db.getUser(req);
+        if(!user) {
+            return next();
         }
-        if (!hasScope(req.session.user, scope)) {
+        req.user = user;
+        if (!hasScope(user, scope)) {
             return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing scope: ${scope}`));
         }
         return next();
@@ -30,10 +35,12 @@ const hasScopeMiddleware = (scope) => {
 };
 
 const adminOnly = function (req, res, next) {
-    if(req.session.user) {
-        return next();
+    let user = db.getUser(req);
+    if(!user) {
+        return res.redirect("/");
     }
-    return res.redirect("/");
+    req.user = user;
+    return next();
 };
 
 module.exports = { adminOnly, hasScope, hasScopeMiddleware, scopes };

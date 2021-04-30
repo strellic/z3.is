@@ -4,16 +4,10 @@ const router = express.Router();
 const db = require("../src/db.js");
 const scopes = require("../src/scopes.js");
 
-const adminOnly = function (req, res, next) {
-    if(req.session.user) {
-        return next();
-    }
-    return res.redirect("/");
-};
-
 router.get("/", (req, res) => {
-    if(req.session.user) {
-        return res.render("admin", { user: req.session.user });
+    let user = db.getUser(req);
+    if(user) {
+        return res.render("admin", { user: user.user, scopes: user.scopes, token: user.token });
     }
     if(db.get("users").value().length === 0) {
         return res.redirect("/admin/adduser");
@@ -21,51 +15,49 @@ router.get("/", (req, res) => {
     return res.render("login");
 });
 
-router.get("/db", adminOnly, (req, res) => {
-    let user = req.session.user;
+router.get("/db", scopes.adminOnly, (req, res) => {
     let state = db.getState();
     let allowed = {};
 
-    if(scopes.hasScope(user, 'users')) 
+    if(scopes.hasScope(req.user, 'users')) 
         allowed.users = state.users.map(u => ({...u, pass: undefined}));
-    if(scopes.hasScope(user, 'shorten'))
+    if(scopes.hasScope(req.user, 'shorten'))
         allowed.shorten = state.shorten;
-    if(scopes.hasScope(user, 'paste'))
+    if(scopes.hasScope(req.user, 'paste'))
         allowed.paste = state.paste;
-    if(scopes.hasScope(user, 'upload') || scopes.hasScope(user, 'download'))
+    if(scopes.hasScope(req.user, 'upload') || scopes.hasScope(req.user, 'download'))
         allowed.files = state.files;
 
-    if(!scopes.hasScope(user, 'superadmin')) {
+    if(!scopes.hasScope(req.user, 'superadmin')) {
         for(let key of Object.keys(allowed)) {
             if(key === "users") {
-                allowed[key] = allowed[key].map(u => scopes.hasScope(u.user, 'superadmin') ? {...u, disabled: true} : u );
+                allowed[key] = allowed[key].map(u => scopes.hasScope(u, 'superadmin') ? {...u, disabled: true} : u );
             }
             else {
-                allowed[key] = allowed[key].filter(item => item.user === user);
+                allowed[key] = allowed[key].filter(item => item.user === req.user.user);
             }
         }
     }
 
-    return res.render("db", { user, db: allowed });
+    return res.render("db", { user: req.user.user, db: allowed });
 });
 
 router.get("/adduser", (req, res) => {
-    let user = req.session.user;
     let users = db.get("users").value();
-    if(!user && users.length !== 0) {
+    if(!req.user && users.length !== 0) {
         return res.redirect("/");
     }
-    if(!scopes.hasScope(user, 'users') && users.length !== 0) {
+    if(!scopes.hasScope(req.user, 'users') && users.length !== 0) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing scope: users`));
     }
 
     let allScopes = scopes.scopes;
-    if(!scopes.hasScope(user, 'superadmin')) {
-        allScopes = allScopes.filter(s => scopes.hasScope(user, s))
+    if(!scopes.hasScope(req.user, 'superadmin')) {
+        allScopes = allScopes.filter(s => scopes.hasScope(req.user, s))
     }
 
     return res.render("adduser", { 
-        user,
+        user: req.user.user,
         scopes: allScopes,
         first: users.length === 0
     });

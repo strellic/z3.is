@@ -1,4 +1,5 @@
 const express = require("express");
+const crypto = require("crypto");
 const fs = require("fs");
 
 const router = express.Router();
@@ -31,7 +32,18 @@ const websocket = require("../src/websocket.js");;
 router.get("/logout", scopes.adminOnly, (req, res) => {
     req.session.destroy();
     res.redirect("/");
-})
+});
+
+/* Helper function for ShareX / Custom Integration functionality when not using the front-end */
+const apiResponse = (req, res, message) => {
+    if(req.headers.authorization) {
+        return res.send(message);
+    }
+    else if(req.user) {
+        return res.redirect("/admin?msg=" + encodeURIComponent(message));
+    }
+    return res.redirect("/");
+};
 
 router.post("/login", async (req, res) => {
     let { user, pass } = req.body; 
@@ -44,26 +56,28 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/shorten", scopes.hasScopeMiddleware("shorten"), (req, res) => {
-    let user = req.session.user;
     let { url, id } = req.body;
     if(!url) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing URL to shorten`));
     }
+    if(!url.startsWith("https://") && !url.startsWith("http://")) {
+        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Invalid URL`));
+    }
 
     id = db.validID('shorten', id);
-    db.get('shorten').push({ url, id, user }).write();
-    return res.redirect("/admin?msg=" + encodeURIComponent(`New URL: ${process.env.SITE}/u/${id}`));
+    db.get('shorten').push({ url, id, user: req.user.user }).write();
+    return apiResponse(req, res, `${process.env.SITE}/u/${id}`);
 });
 
 router.post("/paste", scopes.hasScopeMiddleware("paste"), (req, res) => {
-    let user = req.session.user;
     let { text, title, type, id, duration } = req.body;
-    if(!text || !type) {
-        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing title or type`));
+    if(!text) {
+        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing text`));
     }
+    type = type || "text/plain";
     id = db.validID('paste', id);
 
-    let paste = { text, title, type, id, user };
+    let paste = { text, title, type, id, user: req.user.user };
 
     if(duration === "burn") {
         paste.burn = true;
@@ -74,11 +88,10 @@ router.post("/paste", scopes.hasScopeMiddleware("paste"), (req, res) => {
     }
 
     db.get('paste').push(paste).write();
-    return res.redirect("/admin?msg=" + encodeURIComponent(`New paste: ${process.env.SITE}/p/${id}`));
+    return apiResponse(req, res, `${process.env.SITE}/p/${id}`);
 });
 
 router.post("/upload", [scopes.hasScopeMiddleware("upload"), upload.single('file')], (req, res) => {
-    let user = req.session.user;
     if(!req.file) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`No file uploaded`));
     }
@@ -93,7 +106,7 @@ router.post("/upload", [scopes.hasScopeMiddleware("upload"), upload.single('file
         mimetype: req.file.mimetype,
         id,
         name: req.file.originalname,
-        user
+        user: req.user.user
     };
 
     if(req.body.duration && !isNaN(parseInt(req.body.duration))) {
@@ -102,7 +115,7 @@ router.post("/upload", [scopes.hasScopeMiddleware("upload"), upload.single('file
     }
 
     db.get('files').push(file).write();
-    return res.redirect("/admin?msg=" + encodeURIComponent(`Uploaded file: ${process.env.SITE}/f/${id}`));
+    return apiResponse(req, res, `${process.env.SITE}/f/${id}`);
 });
 
 router.post("/download", scopes.hasScopeMiddleware("download"), (req, res) => {
@@ -134,13 +147,12 @@ router.post("/download", scopes.hasScopeMiddleware("download"), (req, res) => {
 
 router.post("/delete", scopes.adminOnly, (req, res) => {
     let { table, json } = req.body;
-    let user = req.session.user;
 
     if(!table || !json) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing data to delete`));
     }
 
-    if(!scopes.hasScope(user, table)) {
+    if(!scopes.hasScope(req.user, table)) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing scope: ${table}`));
     }
 
@@ -160,7 +172,7 @@ router.post("/delete", scopes.adminOnly, (req, res) => {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`No item found to delete`));
     }
 
-    if(item.user !== req.session.user && !scopes.hasScope(req.session.user, "superadmin")) {
+    if(item.user !== req.user.user && !scopes.hasScope(req.user, "superadmin")) {
         if(table !== "users") {
             return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`No permission to delete that item`));
         }
@@ -172,7 +184,7 @@ router.post("/delete", scopes.adminOnly, (req, res) => {
         }
     }
 
-    if(table === "users" && item.user === req.session.user) {
+    if(table === "users" && item.user === req.user.user) {
         req.session.destroy();
     }
 
@@ -187,7 +199,7 @@ router.post("/adduser", async (req, res) => {
     let { user, pass } = req.body;
 
     let users = db.get('users').value();
-    if(users.length !== 0 && !scopes.hasScope(req.session.user, "users")) {
+    if(users.length !== 0 && !scopes.hasScope(req.user, "users")) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing scope: users`));
     }
 
@@ -211,8 +223,8 @@ router.post("/adduser", async (req, res) => {
     }
 
     userScopes = userScopes.filter(s => scopes.scopes.includes(s));
-    if(!scopes.hasScope(req.session.user, "superadmin")) {
-        userScopes = userScopes.filter(s => scopes.hasScope(req.session.user, s));
+    if(!scopes.hasScope(req.user, "superadmin")) {
+        userScopes = userScopes.filter(s => scopes.hasScope(req.user, s));
     }
 
     if(users.length === 0 || userScopes.includes("superadmin")) {
@@ -230,6 +242,16 @@ router.post("/adduser", async (req, res) => {
     db.get('users').push({ user, pass: hash, scopes: userScopes }).write();
 
     return res.redirect("/admin?msg=" + encodeURIComponent(`User ${user} added successfully`));
+});
+
+router.post("/token", scopes.adminOnly, (req, res) => {
+    if(req.user.token) {
+        db.get('users').find({ user: req.user.user }).assign({ token: undefined }).write();
+    }
+    else {
+        db.get('users').find({ user: req.user.user }).assign({ token: crypto.randomBytes(16).toString("hex") }).write();
+    }
+    return res.redirect("/admin");
 });
 
 module.exports = router;

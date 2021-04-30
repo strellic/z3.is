@@ -31,4 +31,20 @@ db.validID = (name, id, length = 4) => {
     return id;
 };
 
+db.getUser = (req) => {
+    let search = {};
+    if(req.session.user) {
+        search.user = req.session.user;
+    }
+    if(req.headers.authorization) {
+        search.token = req.headers.authorization.replace("Bearer ", "").trim();
+    }
+
+    if(Object.keys(search).length === 0) {
+        return;
+    }
+
+    return db.get('users').find(search).value();
+};
+
 module.exports = db;

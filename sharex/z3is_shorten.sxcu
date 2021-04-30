@@ -1,0 +1,13 @@
+{
+    "Version": "12.4.1",
+    "Name": "z3.is (Shorten)",
+    "RequestMethod": "POST",
+    "RequestURL": "https://z3.is/api/shorten",
+    "Body": "FormURLEncoded",
+    "Headers": {
+        "Authorization": "Bearer API_TOKEN"
+    },
+    "Arguments": {
+        "url": "$input$"
+    }
+}

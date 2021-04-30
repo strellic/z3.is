@@ -44,7 +44,8 @@ app.get("/", (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-    if(req.session.user) {
+    console.log(err);
+    if(db.getUser(req)) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(err.message));
     }
     return res.redirect("/");

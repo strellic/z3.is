@@ -28,15 +28,32 @@
             <%_ } _%>
         </div>
     </div>
-    <%_ if (hasScope(user, 'users')) { _%>
+
     <div class="d-flex justify-content-center parent">
         <div class="content-md">
-            <h4>Users</h4>
+            <h4>Welcome, <%= user %>.</h4>
             <hr>
-            <h5><a href="/admin/adduser">Add New User</a></h5>
+            <h6>Scopes: <%= scopes.join(", ") %></h6>
+            <br />
+            <%_ if (token) { _%>
+            <h6>API token:</h6>
+            <p>Warning: Don't show this API token to anyone! Doing so allows people to run actions as you.</p>
+            <button class="btn btn-primary btn-sm" id="token-copy">Click to Copy</button>
+            <button class="btn btn-danger btn-sm" id="token">Revoke Token</button>
+            <%_ } else { _%>
+            <h6>API token: None</h6>
+            <button class="btn btn-primary btn-sm" id="token">Generate Token</button>
+            <%_ } _%>
+            <%_ if (hasScope(user, 'users')) { _%>
+            <hr>
+            <h6><a href="/admin/adduser">Add New User</a></h6>
+            <%_ } _%>
         </div>
     </div>
-    <%_ } _%>
+
+    <form id="token-form" method="POST" action="/api/token">
+    </form>
+
     <%_ if (hasScope(user, 'shorten')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-md">
@@ -219,6 +236,15 @@
             ws.send("abort");
         });
         <%_ } _%>
+
+        $("#token").addEventListener('click', (e) => {
+            $("#token-form").submit();
+        });
+
+        $("#token-copy").addEventListener('click', async (e) => {
+            await navigator.clipboard.writeText("<%= token %>");
+            location.href = "/admin?msg=" + encodeURIComponent("Copied token to clipboard");
+        });
 
         setTimeout(() => {
             history.pushState({}, document.title, "/admin");

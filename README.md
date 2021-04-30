@@ -36,6 +36,31 @@ Scopes are how certain accounts are given access to specific sections of the web
 
 Superadmins can view the creations of all other users, so give people this scope with caution. People without the `superadmin` scope will only be able to see their own creations. However, people with the `users` scope can see and delete non-superadmin accounts.
 
+## API Tokens & ShareX
+[z3.is](https://z3.is) also supports [ShareX](https://getsharex.com/)'s custom uploaders for the pastebin, url shortener, and file upload functionality.
+
+### API Routes
+Using these routes without the session cookie requires an authorization header, in the following format:
+```
+Authorization: Bearer [API TOKEN]
+```
+
+The list of routes important for functionality are:
+* POST /api/shorten
+* POST /api/paste
+* POST /api/upload
+
+These routes when used with an API token will respond with the URL of the new resource exactly.
+
+Example queries:
+```bash
+curl -X POST https://z3.is/api/shorten -d "url=https://google.com" -H "Authorization: Bearer API_TOKEN"
+curl -X POST https://z3.is/api/paste -d "text=pastedata" -H "Authorization: Bearer API_TOKEN"
+curl -X POST https://z3.is/api/upload -d "file=@test.txt" -F "Authorization: Bearer API_TOKEN"
+```
+
+Check the `sharex` folder for custom uploaders you can use directly with ShareX, just make sure to edit them to add your API token first.
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
