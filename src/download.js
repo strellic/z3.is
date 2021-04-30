@@ -1,3 +1,4 @@
+const https = require('https');
 const http = require('http');
 const fs = require('fs');
 
@@ -10,7 +11,12 @@ const dl = (url, id, statusCb, onDone) => {
         statusCb("The download timed out.");
     }, 10000);
 
-    request = http.get(url, {
+    let getFn = http.get;
+    if(url.startsWith("https:")) {
+        getFn = https.get;
+    }
+
+    request = getFn(url, {
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
         }

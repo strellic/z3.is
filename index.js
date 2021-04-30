@@ -1,4 +1,5 @@
 const express = require("express");
+const fs = require("fs");
 const app = express();
 
 require("dotenv").config();
@@ -41,6 +42,32 @@ app.use("/f", require("./routes/f.js"));
 app.get("/", (req, res) => {
     res.render("index");
 });
+
+app.use((err, req, res, next) => {
+    if(req.session.user) {
+        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(err.message));
+    }
+    return res.redirect("/");
+});
+
+const expirationCheck = () => {
+    let time = +new Date();
+    db.get('paste').remove(p => p.expiration && time > p.expiration).write();
+
+    let list = fs.readdirSync("./uploads").filter(f => f != ".gitkeep");
+    let ids = db.get('files').value().map(f => f.id);
+
+    let unexpected = list.filter(f => !ids.includes(f));
+    let expired = db.get('files').filter(f => f.expiration && time > f.expiration).value().map(f => f.id);
+    let remove = expired.concat(unexpected);
+
+    for(let file of remove) {
+        fs.rmSync("./uploads/" + file);
+    }
+    db.get('files').remove(f => f.expiration && time > f.expiration).write();
+};
+expirationCheck();
+setInterval(expirationCheck, 60000);
 
 let server = app.listen(PORT, () => {
     console.log(`[z3] ${SITE} listening on 0.0.0.0:${PORT}`);

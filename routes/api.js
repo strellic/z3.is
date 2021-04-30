@@ -18,7 +18,10 @@ const upload = multer({
             cb(null, id);
         }
     }),
-    limits: { fileSize: parseInt(process.env.MAXFILE) || 100*1024*1024 }
+    limits: {
+        fileSize: parseInt(process.env.MAXFILE) || 100*1024*1024,
+        files: 1
+    }
 });
 
 const db = require("../src/db.js");
@@ -116,7 +119,7 @@ router.post("/download", scopes.hasScopeMiddleware("download"), (req, res) => {
     catch(err) {
         return res.redirect("/admin?msg=" + encodeURIComponent(`Invalid URL`));
     }
-    if(!['http:', 'https:', 'ftp:'].includes(urlinfo.protocol)) {
+    if(!['http:', 'https:'].includes(urlinfo.protocol)) {
         return res.redirect("/admin?msg=" + encodeURIComponent(`Invalid URL protocol`));
     }
 
@@ -228,18 +231,5 @@ router.post("/adduser", async (req, res) => {
 
     return res.redirect("/admin?msg=" + encodeURIComponent(`User ${user} added successfully`));
 });
-
-const expirationCheck = () => {
-    let time = +new Date();
-    db.get('paste').remove(p => p.expiration && time > p.expiration).write();
-    
-    let files = db.get('files').filter(f => f.expiration && time > f.expiration).value();
-    for(let file of files) {
-        fs.rmSync("./uploads/" + file.id);
-    }
-    db.get('files').remove(f => f.expiration && time > f.expiration).write();
-};
-expirationCheck();
-setInterval(expirationCheck, 60000);
 
 module.exports = router;
