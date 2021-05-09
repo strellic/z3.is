@@ -5,7 +5,7 @@ const db = require("../src/db.js");
 
 router.get("/:id", (req, res) => {
     let { id } = req.params;
-    let link = db.get('shorten').find({ id }).value();
+    let link = db.links.getId(id);
     if(link) {
         return res.redirect(link.url);
     }
@@ -15,7 +15,7 @@ router.get("/:id", (req, res) => {
 /* delayed mode, redirects using HTML tags */
 router.get("/:id/d", (req, res) => {
     let { id } = req.params;
-    let link = db.get('shorten').find({ id }).value();
+    let link = db.links.getId(id);
     if(link) {
         return res.send(`<meta http-equiv="refresh" content="0;url=${link.url.replace(/"/g, "")}" />`);
     }

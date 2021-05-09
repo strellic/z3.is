@@ -31,7 +31,13 @@ const dl = (url, id, statusCb, onDone) => {
             let progress = (100.0 * downloaded / len).toFixed(2);
             let size = (len / 1e+6).toFixed(2), curr = (downloaded / 1e+6).toFixed(2);
 
-            statusCb(`${curr}MB / ${size}MB - ${progress}%`);
+            if(!size || isNaN(size)) {
+                statusCb(`${curr}MB / ?? MB`);
+            }
+            else {
+                statusCb(`${curr}MB / ${size}MB - ${progress}%`);
+            }
+            
             clearTimeout(timer);
             timer = setTimeout(() => {
                 statusCb("The download timed out.");

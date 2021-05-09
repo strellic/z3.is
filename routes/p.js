@@ -5,10 +5,10 @@ const db = require("../src/db.js");
 
 router.get("/:id/d", (req, res) => {
     let { id } = req.params;
-    let paste = db.get('paste').find({ id }).value();
+    let paste = db.pastes.getId(id);
     if(paste) {
         if(paste.burn) {
-            db.get('paste').remove({ id }).write();
+            db.pastes.delId(id);
         }
 
         res.setHeader('content-type', paste.type || 'text/plain');
@@ -21,10 +21,10 @@ router.get("/:id/d", (req, res) => {
 
 router.get("/:id/r", (req, res) => {
     let { id } = req.params;
-    let paste = db.get('paste').find({ id }).value();
+    let paste = db.pastes.getId(id);
     if(paste) {
         if(paste.burn) {
-            db.get('paste').remove({ id }).write();
+            db.pastes.delId(id);
         }
 
         res.setHeader('content-type', paste.type || 'text/plain');
@@ -35,13 +35,13 @@ router.get("/:id/r", (req, res) => {
 
 router.get("/:id", (req, res) => {
     let { id } = req.params;
-    let paste = db.get('paste').find({ id }).value();
+    let paste = db.pastes.getId(id);
     if(paste) {
         if(paste.burn) {
             if(!req.query.confirm) {
                 return res.render("paste", { paste: { confirm: true, id } });
             }
-            db.get('paste').remove({ id }).write();
+            db.pastes.delId(id);
         }
         return res.render("paste", { paste });
     }

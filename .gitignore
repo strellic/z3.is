@@ -1,5 +1,6 @@
-db.json
+z3.db
 node_modules/
 uploads/*
 !uploads/.gitkeep
 .env
+package-lock.json

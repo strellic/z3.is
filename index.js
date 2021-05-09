@@ -45,7 +45,7 @@ app.get("/", (req, res) => {
 
 app.use((err, req, res, next) => {
     console.log(err);
-    if(db.getUser(req)) {
+    if(req.user) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(err.message));
     }
     return res.redirect("/");
@@ -53,19 +53,19 @@ app.use((err, req, res, next) => {
 
 const expirationCheck = () => {
     let time = +new Date();
-    db.get('paste').remove(p => p.expiration && time > p.expiration).write();
+    db.pastes.delExpire();
 
-    let list = fs.readdirSync("./uploads").filter(f => f != ".gitkeep");
-    let ids = db.get('files').value().map(f => f.id);
+    let list = fs.readdirSync("./uploads").filter(s => s[0] !== ".");
+    let ids = db.files.getAll().map(f => f.id);
 
     let unexpected = list.filter(f => !ids.includes(f));
-    let expired = db.get('files').filter(f => f.expiration && time > f.expiration).value().map(f => f.id);
+    let expired = db.files.getExpire().map(f => f.id);
     let remove = expired.concat(unexpected);
 
+    db.files.delExpire();
     for(let file of remove) {
         fs.rmSync("./uploads/" + file);
     }
-    db.get('files').remove(f => f.expiration && time > f.expiration).write();
 };
 expirationCheck();
 setInterval(expirationCheck, 60000);

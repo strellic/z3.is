@@ -8,12 +8,12 @@ const db = require("./db.js");
 // upload   --> files db
 // download --> files db
 
-const scopes = ["superadmin", "users", "shorten", "paste", "upload", "download"];
+const scopes = ["superadmin", "users", "links", "pastes", "upload", "download"];
 
 const hasScope = (user, role) => {
     if(typeof user !== "object") {
         // hasScope can take user object or username string
-        user = db.get('users').find({ user }).value();
+        user = db.users.getUser(user);
     }
     if(!user || !user.scopes) 
         return false;
@@ -22,11 +22,19 @@ const hasScope = (user, role) => {
 
 const hasScopeMiddleware = (scope) => {
     return (req, res, next) => {
-        let user = db.getUser(req);
+        let user;
+        if(req.session.user) {
+            user = db.users.getUser(req.session.user);
+        }
+        if(req.headers.authorization) {
+            user = db.users.getToken(req.headers.authorization.replace("Bearer ", "").trim());
+        }
+
         if(!user) {
             return next();
         }
         req.user = user;
+
         if (!hasScope(user, scope)) {
             return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing scope: ${scope}`));
         }
@@ -35,7 +43,14 @@ const hasScopeMiddleware = (scope) => {
 };
 
 const adminOnly = function (req, res, next) {
-    let user = db.getUser(req);
+    let user;
+    if(req.session.user) {
+        user = db.users.getUser(req.session.user);
+    }
+    if(req.headers.authorization) {
+        user = db.users.getToken(req.headers.authorization.replace("Bearer ", "").trim());
+    }
+
     if(!user) {
         return res.redirect("/");
     }
@@ -43,4 +58,24 @@ const adminOnly = function (req, res, next) {
     return next();
 };
 
-module.exports = { adminOnly, hasScope, hasScopeMiddleware, scopes };
+const adminOrEmptyDB = function (req, res, next) {
+    let users = db.users.getAll();
+
+    let user;
+    if(req.session.user) {
+        user = db.users.getUser(req.session.user);
+    }
+    if(req.headers.authorization) {
+        user = db.users.getToken(req.headers.authorization.replace("Bearer ", "").trim());
+    }
+
+    if(!user && users.length !== 0) {
+        return res.redirect("/");
+    }
+    if(user) {
+        req.user = user;
+    }
+    return next();
+}
+
+module.exports = { adminOnly, hasScope, hasScopeMiddleware, adminOrEmptyDB, scopes };

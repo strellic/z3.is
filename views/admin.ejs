@@ -54,7 +54,7 @@
     <form id="token-form" method="POST" action="/api/token">
     </form>
 
-    <%_ if (hasScope(user, 'shorten')) { _%>
+    <%_ if (hasScope(user, 'links')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-md">
             <h4>URL Shortener</h4>
@@ -75,7 +75,7 @@
         </div>
     </div>
     <%_ } _%>
-    <%_ if (hasScope(user, 'paste')) { _%>
+    <%_ if (hasScope(user, 'pastes')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-lg">
             <h4>Pastebin</h4>
@@ -241,16 +241,18 @@
             $("#token-form").submit();
         });
 
+        <%_ if(token) { _%>
         $("#token-copy").addEventListener('click', async (e) => {
             await navigator.clipboard.writeText("<%= token %>");
             location.href = "/admin?msg=" + encodeURIComponent("Copied token to clipboard");
         });
+        <%_ } _%>
 
         setTimeout(() => {
             history.pushState({}, document.title, "/admin");
         }, 5000);
 
-        <%_ if (hasScope(user, 'paste')) { _%>
+        <%_ if (hasScope(user, 'pastes')) { _%>
         $('#paste-text').addEventListener('keydown', function(e) {
             if (e.key == 'Tab') {
                 e.preventDefault();

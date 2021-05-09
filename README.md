@@ -29,8 +29,8 @@ A simple NodeJS app to host my site [z3.is](https://z3.is).
 Scopes are how certain accounts are given access to specific sections of the website.
 * superadmin - access to everything (can make new superadmin accounts)
 * users - access to create / delete users (can't create / delete superadmin accounts)
-* shorten - access to the URL shortener
-* paste - access to the pastebin system
+* links - access to the URL shortener
+* pastes - access to the pastebin system
 * upload - access to upload files (limited by MAXFILE size in .env)
 * download - access to download remote files (not limited by MAXFILE)
 
@@ -56,7 +56,7 @@ Example queries:
 ```bash
 curl -X POST https://z3.is/api/shorten -d "url=https://google.com" -H "Authorization: Bearer API_TOKEN"
 curl -X POST https://z3.is/api/paste -d "text=pastedata" -H "Authorization: Bearer API_TOKEN"
-curl -X POST https://z3.is/api/upload -d "file=@test.txt" -F "Authorization: Bearer API_TOKEN"
+curl -X POST https://z3.is/api/upload -F "file=@test.txt" -H "Authorization: Bearer API_TOKEN"
 ```
 
 Check the `sharex` folder for custom uploaders you can use directly with ShareX, just make sure to edit them to add your API token first.

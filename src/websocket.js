@@ -31,13 +31,7 @@ const init = (server, s) => {
                     ws.send(JSON.stringify({ msg }));
                 }, (file) => {
                     ws.send(JSON.stringify({ done: true }));
-
-                    if(duration && typeof duration === "number") {
-                        file.expiration = +new Date() + duration*1000;
-                    }
-                    file.user = session.user;
-
-                    db.get('files').push(file).write();
+                    db.files.addFile(id, file.mimetype, file.name, session.user, duration ?? 0);
                     ws.close();
                 });
                 store.set(sid, {...session, dl: null});

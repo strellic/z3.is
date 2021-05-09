@@ -27,7 +27,7 @@
         </div>
     </div>
     <%_ } _%>
-    <%_ if (hasScope(user, 'shorten')) { _%>
+    <%_ if (hasScope(user, 'links')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-lg">
             <h4>Links</h4>
@@ -36,7 +36,7 @@
         </div>
     </div>
     <%_ } _%>
-    <%_ if (hasScope(user, 'paste')) { _%>
+    <%_ if (hasScope(user, 'pastes')) { _%>
     <div class="d-flex justify-content-center parent">
         <div class="content-lg">
             <h4>Pastes</h4>
@@ -58,7 +58,7 @@
     <div class="d-none">
         <form method="POST" action="/api/delete" id="delete">
             <input type="text" name="table" id="delete-table" />
-            <input type="text" name="json" id="delete-json" />
+            <input type="text" name="item" id="delete-item" />
         </form>
     </div>
     <div class="container d-flex justify-content-center mt-5 pt-2 pb-5 bottom">
@@ -95,7 +95,7 @@
 
             if(db[table][index]) {
                 $("#delete-table").val(table);
-                $("#delete-json").val(JSON.stringify(db[table][index]));
+                $("#delete-item").val(db[table][index].id || db[table][index].user);
                 $("#delete").submit();
             }
         };
@@ -117,13 +117,17 @@
             data: db.users
         });
         <%_ } _%>
-        <%_ if (hasScope(user, 'shorten')) { _%>
+        <%_ if (hasScope(user, 'links')) { _%>
         $('#links').bootstrapTable({
             pagination: true,
             search: true,
             columns: [{
                 field: 'user',
                 title: 'Username'
+            }, {
+                field: 'date',
+                title: 'Date',
+                formatter: (value, row, index) => new Date(value*1000).toLocaleString()
             }, {
                 field: 'url',
                 title: 'URL'
@@ -132,12 +136,12 @@
                 title: 'ID',
                 formatter: idToLink("u")
             },
-                deleteButton('shorten')
+                deleteButton('links')
             ],
-            data: db.shorten
+            data: db.links
         });
         <%_ } _%>
-        <%_ if (hasScope(user, 'paste')) { _%>
+        <%_ if (hasScope(user, 'pastes')) { _%>
         $('#pastes').bootstrapTable({
             pagination: true,
             search: true,
@@ -145,28 +149,33 @@
                 field: 'user',
                 title: 'Username'
             }, {
+                field: 'date',
+                title: 'Date',
+                formatter: (value, row, index) => new Date(value*1000).toLocaleString()
+            }, {
                 field: 'title',
                 title: 'Title'
             }, {
                 field: 'type',
                 title: 'Type'
             }, {
-                field: 'expiration',
-                title: 'Expiration',
-                formatter: (value, row, index) => value ? new Date(value).toLocaleString() : ""
+                field: 'expire',
+                title: 'Expire',
+                formatter: (value, row, index) => value ? new Date(value*1000).toLocaleString() : "never"
             }, {
                 field: 'burn',
-                title: 'Burn'
+                title: 'Burn',
+                formatter: (value, row, index) => value ? "true" : "false"
             }, {
                 field: 'id',
                 title: 'ID',
                 formatter: idToLink("p")
             }, 
-                deleteButton('paste')
+                deleteButton('pastes')
             ],
             detailFormatter: (index, row, element) => element.html("<pre><code>" + $("<div>").text(row.text).html() + "</code></pre>"),
             detailView: true,
-            data: db.paste
+            data: db.pastes
         });
         <%_ } _%>
         <%_ if (hasScope(user, 'upload') || hasScope(user, 'download')) { _%>
@@ -177,15 +186,19 @@
                 field: 'user',
                 title: 'Username'
             }, {
+                field: 'date',
+                title: 'Date',
+                formatter: (value, row, index) => new Date(value*1000).toLocaleString()
+            }, {
                 field: 'name',
                 title: 'Name'
             }, {
-                field: 'mimetype',
+                field: 'type',
                 title: 'Type'
             }, {
-                field: 'expiration',
-                title: 'Expiration',
-                formatter: (value, row, index) => value ? new Date(value).toLocaleString() : ""
+                field: 'expire',
+                title: 'Expire',
+                formatter: (value, row, index) => value ? new Date(value*1000).toLocaleString() : "never"
             }, {
                 field: 'id',
                 title: 'ID',
