@@ -25,7 +25,7 @@ router.get("/db", scopes.adminOnly, (req, res) => {
     let allowed = {};
 
     if(scopes.hasScope(req.user, 'users')) 
-        allowed.users = state.users.map(u => ({...u, pass: undefined}));
+        allowed.users = state.users.map(u => ({...u, pass: undefined, token: undefined}));
     if(scopes.hasScope(req.user, 'links'))
         allowed.links = state.links.reverse();
     if(scopes.hasScope(req.user, 'pastes'))
@@ -64,6 +64,10 @@ router.get("/adduser", scopes.adminOrEmptyDB, (req, res) => {
         scopes: allScopes,
         first: users.length === 0
     });
+});
+
+router.get("/changepw", scopes.adminOnly, (req, res) => {
+    res.render("changepw");
 });
 
 module.exports = router;

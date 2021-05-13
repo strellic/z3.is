@@ -68,6 +68,7 @@ const stmts = {
         delToken: db.prepare(`UPDATE users SET token = NULL WHERE user = @user;`),
         setToken: db.prepare(`UPDATE users SET token = @token WHERE user = @user;`),
         getToken: db.prepare(`SELECT * FROM users where token = @token;`),
+        changePW: db.prepare(`UPDATE users SET pass = @pass WHERE user = @user`),
         getAll:   db.prepare(`SELECT * FROM users;`)
     },
     links: {
@@ -121,6 +122,12 @@ const users = {
             user = user.user;
         }
         return stmts.users.setToken.run({ user, token });
+    },
+    changePW: (user, pass) => {
+        if(typeof user === "object") {
+            user = user.user;
+        }
+        return stmts.users.changePW.run({ user, pass });
     },
     getToken: (token) => {
         return stmts.users.getToken.get({ token });

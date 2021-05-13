@@ -81,6 +81,11 @@ router.post("/paste", scopes.hasScopeMiddleware("pastes"), (req, res) => {
         burn = 1;
     }
 
+    duration = parseInt(duration);
+    if(isNaN(duration)) {
+        duration = 0;
+    }
+
     id = db.pastes.addPaste(id, text, title, type, req.user, duration ?? 0, burn);
     return apiResponse(req, res, `${process.env.SITE}/p/${id}`);
 });
@@ -95,6 +100,11 @@ router.post("/upload", [scopes.hasScopeMiddleware("upload"), upload.single('file
     if(req.body.id && !db.files.getId(req.body.id)) {
         id = req.body.id;
         fs.renameSync("./uploads/" + req.file.filename, "./uploads/" + req.body.id);
+    }
+
+    req.body.duration = parseInt(req.body.duration);
+    if(isNaN(req.body.duration)) {
+        req.body.duration = 0;
     }
 
     id = db.files.addFile(id, req.file.mimetype, req.file.originalname, req.user, req.body.duration ?? 0);
@@ -223,6 +233,22 @@ router.post("/token", scopes.adminOnly, (req, res) => {
         db.users.setToken(req.user, crypto.randomBytes(16).toString("hex"));
     }
     return res.redirect("/admin");
+});
+
+router.post("/changepw", scopes.adminOnly, async (req, res) => {
+    let { origpass, pass } = req.body;
+    if(!origpass || !pass) {
+        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing password fields`));
+    }
+
+    if(!await bcrypt.compare(origpass, req.user.pass)) {
+        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Incorrect original password`));
+    }
+
+    let hash = await bcrypt.hash(pass, 14);
+    db.users.changePW(req.user, hash);
+
+    return res.redirect("/admin?msg=" + encodeURIComponent(`Password changed successfully`));
 });
 
 module.exports = router;

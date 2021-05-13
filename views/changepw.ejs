@@ -15,16 +15,23 @@
 
 <body>
     <div class="container d-flex justify-content-center mt-5 pt-2">
-        <h1>Login</h1>
+        <h1>Change Password</h1>
     </div>
     <div class="d-flex justify-content-center parent">
         <div class="content-md">
             <h4><%= site %></h4>
             <hr>
-            <form method="POST" action="/api/login">
+            <form method="POST" action="/api/changepw">
                 <div class="form-group">
-                    <div class="input"><label for="user">Username</label><input class="form-control" type="text" id="user" name="user" required></div>
-                    <div class="input"><label for="pass">Password</label><input class="form-control" type="password" name="pass" required></div><button class="btn btn-primary btn-block" type="submit">Sign In</button>
+                    <div class="input">
+                        <label for="pass">Original Password</label>
+                        <input class="form-control" type="password" name="origpass" required>
+                    </div>
+                    <div class="input">
+                        <label for="pass">New Password</label>
+                        <input class="form-control" type="password" name="pass" required>
+                    </div>
+                    <button class="btn btn-primary btn-block" type="submit">Change</button>
                 </div>
             </form>
         </div>

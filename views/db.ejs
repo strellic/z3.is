@@ -11,7 +11,8 @@
     <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/fonts/fontawesome-all.min.css">
     <link rel="stylesheet" href="/assets/css/styles.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
+    <link rel="stylesheet" href="//unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/styles/default.min.css">
 </head>
 
 <body>
@@ -173,7 +174,13 @@
             }, 
                 deleteButton('pastes')
             ],
-            detailFormatter: (index, row, element) => element.html("<pre><code>" + $("<div>").text(row.text).html() + "</code></pre>"),
+            detailFormatter: (index, row, element) => {
+                let pre = $('<pre>'), code = $('<code>');
+                code.text(row.text);
+                code.appendTo(pre);
+                pre.appendTo($(element));
+                hljs.highlightAll();
+            },
             detailView: true,
             data: db.pastes
         });
@@ -206,9 +213,29 @@
             },
                 deleteButton('files')
             ],
+            detailFormatter: async (index, row, element) => {
+                if(row.type.includes("image/")) {
+                    let img = $('<img>', { src: `/f/${row.id}` });
+                    img.appendTo($(element));
+                }
+                else if(row.type.includes("text/")) {
+                    let content = await (await fetch(`/f/${row.id}`)).text();
+                    let pre = $('<pre>'), code = $('<code>');
+                    code.text(content);
+                    code.appendTo(pre);
+                    pre.appendTo($(element));
+                    hljs.highlightAll();
+                }
+                else {
+                    let iframe = $('<iframe>', { src: `/f/${row.id}`, style: "width: 100%; height: 75vh" });
+                    iframe.appendTo($(element));
+                }
+            },
+            detailView: true,
             data: db.files
         });
         <%_ } _%>
     </script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
 </body>
 </html>

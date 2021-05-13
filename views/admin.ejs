@@ -44,8 +44,9 @@
             <h6>API token: None</h6>
             <button class="btn btn-primary btn-sm" id="token">Generate Token</button>
             <%_ } _%>
-            <%_ if (hasScope(user, 'users')) { _%>
             <hr>
+            <h6><a href="/admin/changepw">Change Password</a></h6>
+            <%_ if (hasScope(user, 'users')) { _%>
             <h6><a href="/admin/adduser">Add New User</a></h6>
             <%_ } _%>
         </div>
