@@ -21,7 +21,9 @@ const init = (server, s) => {
         if(csid) {
             let sid = signature.unsign(csid.slice("s:".length), process.env.SESSION_SECRET);
             store.get(sid, (err, session) => {
-                if(err || !session || !session.user || !session.dl) {
+                let user = db.getUserFromReq(req);
+                if(err || !session || !user || !session.dl) {
+                    ws.send(JSON.stringify({ msg: "Something went wrong with the download process." }));
                     return ws.close();
                 }
 
@@ -31,7 +33,7 @@ const init = (server, s) => {
                     ws.send(JSON.stringify({ msg }));
                 }, (file) => {
                     ws.send(JSON.stringify({ done: true }));
-                    db.files.addFile(id, file.mimetype, file.name, session.user, duration ?? 0);
+                    db.files.addFile(id, file.mimetype, file.name, user, duration ?? 0);
                     ws.close();
                 });
                 store.set(sid, {...session, dl: null});

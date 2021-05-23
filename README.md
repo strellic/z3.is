@@ -31,8 +31,8 @@ Scopes are how certain accounts are given access to specific sections of the web
 * users - access to create / delete users (can't create / delete superadmin accounts)
 * links - access to the URL shortener
 * pastes - access to the pastebin system
-* upload - access to upload files (limited by MAXFILE size in .env)
-* download - access to download remote files (not limited by MAXFILE)
+* upload - access to upload files (limited by MAXUPLOAD size in .env, -1 for no limit)
+* download - access to download remote files (limited by MAXDOWNLOAD size in .env, -1 for no limit)
 
 Superadmins can view the creations of all other users, so give people this scope with caution. People without the `superadmin` scope will only be able to see their own creations. However, people with the `users` scope can see and delete non-superadmin accounts.
 

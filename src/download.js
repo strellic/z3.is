@@ -2,6 +2,13 @@ const https = require('https');
 const http = require('http');
 const fs = require('fs');
 
+require("dotenv").config();
+
+let maxDownload = -1;
+if(process.env.MAXDOWNLOAD && !isNaN(parseInt(process.env.MAXDOWNLOAD))) {
+    maxDownload = parseInt(process.env.MAXDOWNLOAD);
+}
+
 const dl = (url, id, statusCb, onDone) => {
     let request;
     let file = fs.createWriteStream("./uploads/" + id);
@@ -22,6 +29,13 @@ const dl = (url, id, statusCb, onDone) => {
         }
     }).on('response', function(res) {
         let len = parseInt(res.headers['content-length']);
+
+        if(maxDownload !== -1 && len > maxDownload) {
+            statusCb('The file exceeds the max download size.');
+            request.abort();
+            clearTimeout(timer);
+        }
+
         let downloaded = 0;
             
         res.on('data', function(chunk) {
@@ -30,6 +44,12 @@ const dl = (url, id, statusCb, onDone) => {
 
             let progress = (100.0 * downloaded / len).toFixed(2);
             let size = (len / 1e+6).toFixed(2), curr = (downloaded / 1e+6).toFixed(2);
+
+            if(maxDownload !== -1 && downloaded > maxDownload) {
+                statusCb('The file exceeds the max download size.');
+                request.abort();
+                clearTimeout(timer);
+            }
 
             if(!size || isNaN(size)) {
                 statusCb(`${curr}MB / ?? MB`);

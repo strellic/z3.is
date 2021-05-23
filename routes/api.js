@@ -8,6 +8,11 @@ require("dotenv").config();
 
 const bcrypt = require('bcrypt');
 
+let maxUpload = -1;
+if(process.env.MAXUPLOAD && !isNaN(parseInt(process.env.MAXUPLOAD))) {
+    maxUpload = parseInt(process.env.MAXUPLOAD);
+}
+
 const multer = require('multer');
 const upload = multer({ 
     storage: multer.diskStorage({
@@ -20,7 +25,7 @@ const upload = multer({
         }
     }),
     limits: {
-        fileSize: parseInt(process.env.MAXFILE) || 100*1024*1024,
+        fileSize: maxUpload === -1 ? undefined : maxUpload,
         files: 1
     }
 });

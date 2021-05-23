@@ -225,7 +225,7 @@ const tables = {
 
 const getUserFromReq = (req) => {
     let user;
-    if(req.session.user) {
+    if(req.session && req.session.user) {
         user = users.getUser(req.session.user);
     }
     if(req.headers.authorization) {
