@@ -130,7 +130,11 @@ const users = {
         return stmts.users.changePW.run({ user, pass });
     },
     getToken: (token) => {
-        return stmts.users.getToken.get({ token });
+        let entry = stmts.users.getToken.get({ token });
+        if(entry) {
+            entry.scopes = JSON.parse(entry.scopes);
+        }
+        return entry;
     },
     getAll: () => {
         return stmts.users.getAll.all().map(u => ({...u, scopes: JSON.parse(u.scopes) }));
@@ -219,4 +223,15 @@ const tables = {
     files
 }
 
-module.exports = { ...tables, validID, randomIDForDB };
+const getUserFromReq = (req) => {
+    let user;
+    if(req.session.user) {
+        user = users.getUser(req.session.user);
+    }
+    if(req.headers.authorization) {
+        user = users.getToken(req.headers.authorization.replace("Bearer ", "").trim());
+    }
+    return user;
+};
+
+module.exports = { ...tables, validID, randomIDForDB, getUserFromReq };

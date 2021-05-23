@@ -5,8 +5,8 @@ const db = require("../src/db.js");
 const scopes = require("../src/scopes.js");
 
 router.get("/", (req, res) => {
-    if(req.session.user) {
-        let user = db.users.getUser(req.session.user);
+    let user = db.getUserFromReq(req);
+    if(user) {
         return res.render("admin", { user: user.user, scopes: user.scopes, token: user.token });
     }
     if(db.users.getAll().length === 0) {

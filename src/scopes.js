@@ -3,8 +3,8 @@ const db = require("./db.js");
 // list of scopes
 // superadmin
 // users
-// shorten
-// paste
+// links
+// pastes
 // upload   --> files db
 // download --> files db
 
@@ -22,14 +22,8 @@ const hasScope = (user, role) => {
 
 const hasScopeMiddleware = (scope) => {
     return (req, res, next) => {
-        let user;
-        if(req.session.user) {
-            user = db.users.getUser(req.session.user);
-        }
-        if(req.headers.authorization) {
-            user = db.users.getToken(req.headers.authorization.replace("Bearer ", "").trim());
-        }
-
+        let user = db.getUserFromReq(req);
+        
         if(!user) {
             return next();
         }
@@ -43,14 +37,7 @@ const hasScopeMiddleware = (scope) => {
 };
 
 const adminOnly = function (req, res, next) {
-    let user;
-    if(req.session.user) {
-        user = db.users.getUser(req.session.user);
-    }
-    if(req.headers.authorization) {
-        user = db.users.getToken(req.headers.authorization.replace("Bearer ", "").trim());
-    }
-
+    let user = db.getUserFromReq(req);
     if(!user) {
         return res.redirect("/");
     }
@@ -60,14 +47,7 @@ const adminOnly = function (req, res, next) {
 
 const adminOrEmptyDB = function (req, res, next) {
     let users = db.users.getAll();
-
-    let user;
-    if(req.session.user) {
-        user = db.users.getUser(req.session.user);
-    }
-    if(req.headers.authorization) {
-        user = db.users.getToken(req.headers.authorization.replace("Bearer ", "").trim());
-    }
+    let user = db.getUserFromReq(req);
 
     if(!user && users.length !== 0) {
         return res.redirect("/");
