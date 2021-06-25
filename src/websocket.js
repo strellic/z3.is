@@ -21,6 +21,7 @@ const init = (server, s) => {
         if(csid) {
             let sid = signature.unsign(csid.slice("s:".length), process.env.SESSION_SECRET);
             store.get(sid, (err, session) => {
+                req.session = session;
                 let user = db.getUserFromReq(req);
                 if(err || !session || !user || !session.dl) {
                     ws.send(JSON.stringify({ msg: "Something went wrong with the download process." }));

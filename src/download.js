@@ -1,5 +1,6 @@
 const https = require('https');
 const http = require('http');
+const path = require('path');
 const fs = require('fs');
 
 require("dotenv").config();
@@ -11,7 +12,6 @@ if(process.env.MAXDOWNLOAD && !isNaN(parseInt(process.env.MAXDOWNLOAD))) {
 
 const dl = (url, id, statusCb, onDone) => {
     let request;
-    let file = fs.createWriteStream("./uploads/" + id);
 
     let timer = setTimeout(() => {
         request.abort();
@@ -29,23 +29,29 @@ const dl = (url, id, statusCb, onDone) => {
         }
     }).on('response', function(res) {
         let len = parseInt(res.headers['content-length']);
+        let loc = path.resolve(__dirname, '..', 'uploads', id);
+
+        let file = fs.createWriteStream(loc);
+        let remove = () => fs.rmSync(loc, { force: true });
 
         if(maxDownload !== -1 && len > maxDownload) {
+            remove();
             statusCb('The file exceeds the max download size.');
             request.abort();
             clearTimeout(timer);
         }
 
         let downloaded = 0;
-            
+        res.pipe(file);
+
         res.on('data', function(chunk) {
-            file.write(chunk);
             downloaded += chunk.length;
 
             let progress = (100.0 * downloaded / len).toFixed(2);
             let size = (len / 1e+6).toFixed(2), curr = (downloaded / 1e+6).toFixed(2);
 
             if(maxDownload !== -1 && downloaded > maxDownload) {
+                remove();
                 statusCb('The file exceeds the max download size.');
                 request.abort();
                 clearTimeout(timer);
@@ -60,25 +66,30 @@ const dl = (url, id, statusCb, onDone) => {
             
             clearTimeout(timer);
             timer = setTimeout(() => {
+                remove();
                 statusCb("The download timed out.");
                 request.abort();
             }, 10000);
-        }).on('end', ()  => {
+        })
+        .on('end', ()  => {
             clearTimeout(timer);
-            file.end();
             statusCb('Download finished!');
             onDone({
                 mimetype: res.headers['content-type'],
                 id,
                 name: res.req.path.split("/")[res.req.path.split("/").length-1]
             });
-        }).on('error', (err) => {
+        })
+        .on('error', (err) => {
+            remove();
+            console.log(err);
             statusCb(err.message);
             clearTimeout(timer);                
         });           
     });
 
     let stopper = () => {
+        remove();
         statusCb('The download was aborted.');
         request.abort();
         clearTimeout(timer);

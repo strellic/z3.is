@@ -14,6 +14,7 @@ if(process.env.MAXUPLOAD && !isNaN(parseInt(process.env.MAXUPLOAD))) {
 }
 
 const multer = require('multer');
+console.log(maxUpload, maxUpload === -1 ? undefined : maxUpload);
 const upload = multer({ 
     storage: multer.diskStorage({
         destination: function (req, file, cb) {

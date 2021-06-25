@@ -6,6 +6,9 @@ const db = require("../src/db.js");
 
 router.get("/:id", (req, res) => {
     let { id } = req.params;
+    if(id.includes("."))
+        id = id.split(".").slice(0, -1).join(".");
+
     let file = db.files.getId(id);
     if(file) {
         let name = file.name || file.id;
