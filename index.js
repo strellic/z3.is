@@ -13,6 +13,7 @@ const MemoryStore = require('memorystore')(session);
 const db = require("./src/db.js");
 const scopes = require("./src/scopes.js");
 const websocket = require("./src/websocket.js");
+let { downloading } = require("./src/download.js");
 
 const store = new MemoryStore({
     checkPeriod: 86400000
@@ -57,6 +58,8 @@ const expirationCheck = () => {
 
     let list = fs.readdirSync("./uploads").filter(s => s[0] !== ".");
     let ids = db.files.getAll().map(f => f.id);
+
+    ids = ids.filter(i => !downloading.includes(i));
 
     let unexpected = list.filter(f => !ids.includes(f));
     let expired = db.files.getExpire().map(f => f.id);

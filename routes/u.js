@@ -1,13 +1,15 @@
 const express = require("express");
+const url = require("url");
+
 const router = express.Router();
 
 const db = require("../src/db.js");
 
-router.get("/:id", (req, res) => {
+router.get("/:id/(*)", (req, res) => {
     let { id } = req.params;
     let link = db.links.getId(id);
     if(link) {
-        return res.redirect(link.url);
+        return res.redirect(url.resolve(link.url, req.url.slice(`/${id}`.length)));
     }
     return res.redirect("/");
 });

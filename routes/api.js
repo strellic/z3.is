@@ -14,7 +14,6 @@ if(process.env.MAXUPLOAD && !isNaN(parseInt(process.env.MAXUPLOAD))) {
 }
 
 const multer = require('multer');
-console.log(maxUpload, maxUpload === -1 ? undefined : maxUpload);
 const upload = multer({ 
     storage: multer.diskStorage({
         destination: function (req, file, cb) {
@@ -66,9 +65,10 @@ router.post("/shorten", scopes.hasScopeMiddleware("links"), (req, res) => {
     if(!url) {
         return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Missing URL to shorten`));
     }
-    if(!url.startsWith("https://") && !url.startsWith("http://")) {
-        return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Invalid URL`));
-    }
+    
+    //if(!url.startsWith("https://") && !url.startsWith("http://") && !scopes.hasScope(req.user, 'superadmin')) {
+    //    return res.redirect("/admin?title=Error&msg=" + encodeURIComponent(`Invalid URL`));
+    //}
 
     id = db.links.addLink(id, url, req.user);
     return apiResponse(req, res, `${process.env.SITE}/u/${id}`);

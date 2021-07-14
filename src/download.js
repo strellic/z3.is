@@ -10,6 +10,8 @@ if(process.env.MAXDOWNLOAD && !isNaN(parseInt(process.env.MAXDOWNLOAD))) {
     maxDownload = parseInt(process.env.MAXDOWNLOAD);
 }
 
+let downloading = [];
+
 const dl = (url, id, statusCb, onDone) => {
     let request;
 
@@ -23,16 +25,20 @@ const dl = (url, id, statusCb, onDone) => {
         getFn = https.get;
     }
 
+    let loc = path.resolve(__dirname, '..', 'uploads', id);
+    let remove = () => {
+        fs.rmSync(loc, { force: true });
+        downloading = downloading.filter(i => i !== id);
+    }
+
     request = getFn(url, {
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
         }
     }).on('response', function(res) {
         let len = parseInt(res.headers['content-length']);
-        let loc = path.resolve(__dirname, '..', 'uploads', id);
-
         let file = fs.createWriteStream(loc);
-        let remove = () => fs.rmSync(loc, { force: true });
+        downloading.push(id);
 
         if(maxDownload !== -1 && len > maxDownload) {
             remove();
@@ -98,4 +104,4 @@ const dl = (url, id, statusCb, onDone) => {
     return stopper;
 };
 
-module.exports = { dl };
+module.exports = { dl, downloading };
