@@ -5,7 +5,7 @@ const router = express.Router();
 
 const db = require("../src/db.js");
 
-router.get("/:id/(*)", (req, res) => {
+router.get(["/:id", "/:id/:extra*"], (req, res) => {
     let { id } = req.params;
     let link = db.links.getId(id);
     if(link) {
